@@ -72,3 +72,4 @@ logs/
 # Memory dumps
 *.json
 memory_*.json
+TECHNICAL_BRIEF.md
