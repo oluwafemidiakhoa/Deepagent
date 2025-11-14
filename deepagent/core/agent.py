@@ -18,6 +18,7 @@ from .memory import (
 from .reasoning import ReasoningEngine, ReasoningResult
 from ..tools.retrieval import ToolRegistry, ToolDefinition, create_sample_tool_registry
 from ..tools.executor import ToolExecutor, ExecutionResult, ExecutionStatus
+from ..integrations.llm_providers import get_llm_provider, LLMProvider
 
 
 @dataclass
@@ -30,8 +31,11 @@ class AgentConfig:
     memory_episodic_max: int = 1000
     memory_working_max: int = 5
     memory_tool_max: int = 500
+    llm_provider: str = "openai"  # "openai", "anthropic", or "ollama"
     llm_model: str = "gpt-4"
     llm_temperature: float = 0.7
+    llm_api_key: Optional[str] = None  # Optional, uses env var if not provided
+    use_mock_llm: bool = False  # Set to True to use mock for testing
 
 
 class DeepAgent:
@@ -65,8 +69,21 @@ class DeepAgent:
             verbose=self.config.verbose
         )
 
-        # LLM integration (mock for now)
-        self.llm_model = self.config.llm_model
+        # Initialize LLM provider (real or mock)
+        if self.config.use_mock_llm:
+            self.llm_provider = None  # Use mock implementation
+        else:
+            try:
+                self.llm_provider: Optional[LLMProvider] = get_llm_provider(
+                    provider_name=self.config.llm_provider,
+                    api_key=self.config.llm_api_key,
+                    model=self.config.llm_model
+                )
+            except Exception as e:
+                if self.config.verbose:
+                    print(f"Warning: Could not initialize LLM provider: {e}")
+                    print("Falling back to mock LLM. Set OPENAI_API_KEY or ANTHROPIC_API_KEY to use real LLMs.")
+                self.llm_provider = None
 
     def run(
         self,
@@ -205,20 +222,27 @@ class DeepAgent:
         """
         Generate next reasoning step using LLM
 
-        In production, this would call GPT-4, Claude, or a local model.
-        For demo purposes, we simulate reasoning steps.
+        Uses configured LLM provider (OpenAI, Anthropic, Ollama) or falls back to mock.
         """
-        # This is a mock implementation
-        # In production, replace with actual LLM API call
+        # Use real LLM if available
+        if self.llm_provider is not None:
+            try:
+                response = self.llm_provider.generate(
+                    prompt=prompt,
+                    temperature=self.config.llm_temperature,
+                    max_tokens=2000
+                )
+                return response.content
+            except Exception as e:
+                if self.config.verbose:
+                    print(f"LLM API error: {e}. Falling back to mock response.")
+                # Fall through to mock implementation
 
-        # Simple rule-based simulation for demo
+        # Mock implementation for testing/fallback
         if "TASK:" in prompt and prompt.count("\n") < 20:
-            # Initial reasoning
             return "THINK: Let me break down this task and identify what tools I need."
 
         elif "THINK:" in prompt and "SEARCH_TOOLS:" not in prompt:
-            # After thinking, search for tools
-            # Extract task from prompt
             if "protein" in prompt.lower() or "brca" in prompt.lower():
                 return "SEARCH_TOOLS: protein structure retrieval and analysis"
             elif "drug" in prompt.lower():
@@ -227,13 +251,10 @@ class DeepAgent:
                 return "SEARCH_TOOLS: data analysis and information retrieval"
 
         elif "AVAILABLE TOOLS:" in prompt and "EXECUTE_TOOL:" not in prompt:
-            # After tools are found, execute one
-            # Parse available tools and execute the first one
             lines = prompt.split("\n")
             for line in lines:
                 if line.strip().startswith("- "):
                     tool_name = line.strip()[2:].split(":")[0]
-                    # Generate appropriate parameters
                     if "protein" in tool_name.lower():
                         return f'EXECUTE_TOOL: {tool_name}\nPARAMETERS: {{"protein_id": "BRCA1"}}'
                     elif "search" in tool_name.lower():
@@ -242,15 +263,12 @@ class DeepAgent:
                         return f'EXECUTE_TOOL: {tool_name}\nPARAMETERS: {{}}'
 
         elif "RESULT:" in prompt:
-            # After execution, observe results
             return "OBSERVE: The tool execution was successful and provided relevant data. Let me analyze these results."
 
         elif "OBSERVE:" in prompt:
-            # After observation, conclude
             return "CONCLUDE: Based on the tool execution and analysis, I have gathered sufficient information to answer the task. The results show relevant data that addresses the original question."
 
         else:
-            # Default fallback
             return "THINK: Continuing to reason about the task."
 
     def get_memory_summary(self) -> str:
