@@ -3,6 +3,8 @@ Dense Tool Retrieval System
 
 Implements semantic search over large-scale API repositories
 for dynamic tool discovery during reasoning.
+
+Author: Oluwafemi Idiakhoa
 """
 
 from typing import List, Dict, Any, Optional, Tuple
@@ -10,6 +12,7 @@ from dataclasses import dataclass
 import numpy as np
 from collections import defaultdict
 import json
+import os
 
 
 @dataclass
@@ -46,14 +49,60 @@ class ToolDefinition:
 class DenseToolRetriever:
     """
     Semantic search over tool repository using dense embeddings
-    Simulates searching 10,000+ tools like RapidAPI or ToolHop
+    Supports 10,000+ tools with FAISS indexing for scalable similarity search
+
+    Production features:
+    - sentence-transformers for semantic embeddings
+    - FAISS for efficient vector similarity search
+    - Graceful fallback to hash-based mock if dependencies unavailable
     """
 
-    def __init__(self, embedding_dim: int = 384):
+    def __init__(
+        self,
+        embedding_dim: int = 384,
+        use_sentence_transformers: bool = True,
+        model_name: str = "all-MiniLM-L6-v2",
+        use_faiss: bool = True,
+        cache_embeddings: bool = True
+    ):
         self.tools: List[ToolDefinition] = []
         self.embedding_dim = embedding_dim
         self.tool_embeddings: Optional[np.ndarray] = None
         self.category_index: Dict[str, List[int]] = defaultdict(list)
+
+        # Production features
+        self.use_sentence_transformers = use_sentence_transformers
+        self.use_faiss = use_faiss
+        self.cache_embeddings = cache_embeddings
+        self.embedding_cache: Dict[str, np.ndarray] = {}
+
+        # Initialize sentence-transformers model
+        self.encoder = None
+        if self.use_sentence_transformers:
+            try:
+                from sentence_transformers import SentenceTransformer
+                self.encoder = SentenceTransformer(model_name)
+                self.embedding_dim = self.encoder.get_sentence_embedding_dimension()
+                print(f"Loaded sentence-transformers model: {model_name} (dim={self.embedding_dim})")
+            except ImportError:
+                print("Warning: sentence-transformers not installed. Falling back to mock embeddings.")
+                print("Install with: pip install sentence-transformers")
+                self.use_sentence_transformers = False
+            except Exception as e:
+                print(f"Warning: Could not load sentence-transformers: {e}")
+                self.use_sentence_transformers = False
+
+        # Initialize FAISS index
+        self.faiss_index = None
+        if self.use_faiss:
+            try:
+                import faiss
+                self.faiss = faiss
+                print("FAISS available for efficient similarity search")
+            except ImportError:
+                print("Warning: FAISS not installed. Using NumPy for similarity search.")
+                print("Install with: pip install faiss-cpu")
+                self.use_faiss = False
 
     def add_tool(self, tool: ToolDefinition) -> None:
         """Add a tool to the registry"""
@@ -82,14 +131,28 @@ class DenseToolRetriever:
 
     def _generate_embedding(self, tool: ToolDefinition) -> np.ndarray:
         """
-        Generate semantic embedding for a tool
-        In production, use sentence-transformers or OpenAI embeddings
-        Here we use a simple hash-based embedding for demo
+        Generate semantic embedding for a tool using sentence-transformers
+
+        Falls back to hash-based embedding if sentence-transformers unavailable
         """
         # Combine tool information into searchable text
         text = f"{tool.name} {tool.description} {tool.category}"
 
-        # Simple hash-based embedding (replace with real embeddings in production)
+        # Check cache first
+        if self.cache_embeddings and text in self.embedding_cache:
+            return self.embedding_cache[text]
+
+        # Production: Use sentence-transformers
+        if self.use_sentence_transformers and self.encoder:
+            embedding = self.encoder.encode(text, convert_to_numpy=True)
+            embedding = embedding / np.linalg.norm(embedding)  # Normalize
+
+            if self.cache_embeddings:
+                self.embedding_cache[text] = embedding
+
+            return embedding
+
+        # Fallback: Hash-based embedding for demo/development
         np.random.seed(hash(text) % (2**32))
         embedding = np.random.randn(self.embedding_dim)
         embedding = embedding / np.linalg.norm(embedding)  # Normalize
@@ -97,9 +160,26 @@ class DenseToolRetriever:
         return embedding
 
     def _update_embedding_matrix(self) -> None:
-        """Update the matrix of all tool embeddings"""
-        if self.tools:
-            self.tool_embeddings = np.vstack([tool.embedding for tool in self.tools])
+        """
+        Update the matrix of all tool embeddings and rebuild FAISS index
+
+        For large-scale retrieval (10K+ tools), FAISS provides significant speedup
+        """
+        if not self.tools:
+            return
+
+        # Stack all embeddings
+        self.tool_embeddings = np.vstack([tool.embedding for tool in self.tools])
+
+        # Build FAISS index for efficient similarity search
+        if self.use_faiss and self.faiss:
+            # Create or rebuild FAISS index
+            # Using IndexFlatIP (Inner Product) since embeddings are normalized
+            # This is equivalent to cosine similarity
+            self.faiss_index = self.faiss.IndexFlatIP(self.embedding_dim)
+            self.faiss_index.add(self.tool_embeddings.astype('float32'))
+
+            print(f"FAISS index built with {len(self.tools)} tools")
 
     def search(
         self,
@@ -110,6 +190,8 @@ class DenseToolRetriever:
     ) -> List[Tuple[ToolDefinition, float]]:
         """
         Search for relevant tools using semantic similarity
+
+        Uses FAISS for efficient search when available (10-100x faster for large tool sets)
 
         Args:
             query: Natural language description of needed functionality
@@ -126,7 +208,11 @@ class DenseToolRetriever:
         # Generate query embedding
         query_embedding = self._generate_query_embedding(query)
 
-        # Compute similarities
+        # FAISS-accelerated search (production path)
+        if self.use_faiss and self.faiss_index and not category_filter:
+            return self._faiss_search(query_embedding, top_k, min_similarity)
+
+        # NumPy-based search (fallback or when category filtering)
         if category_filter and category_filter in self.category_index:
             # Filter by category
             indices = self.category_index[category_filter]
@@ -152,8 +238,53 @@ class DenseToolRetriever:
         results.sort(key=lambda x: x[1], reverse=True)
         return results[:top_k]
 
+    def _faiss_search(
+        self,
+        query_embedding: np.ndarray,
+        top_k: int,
+        min_similarity: float
+    ) -> List[Tuple[ToolDefinition, float]]:
+        """
+        FAISS-accelerated similarity search
+
+        This is 10-100x faster than NumPy for large tool registries (10K+ tools)
+        """
+        # FAISS search returns distances and indices
+        query = query_embedding.astype('float32').reshape(1, -1)
+        similarities, indices = self.faiss_index.search(query, top_k)
+
+        # Filter by minimum similarity and create results
+        results = []
+        for i in range(len(indices[0])):
+            idx = indices[0][i]
+            similarity = float(similarities[0][i])
+
+            if similarity >= min_similarity and idx < len(self.tools):
+                results.append((self.tools[idx], similarity))
+
+        return results
+
     def _generate_query_embedding(self, query: str) -> np.ndarray:
-        """Generate embedding for search query"""
+        """
+        Generate embedding for search query using sentence-transformers
+
+        Falls back to hash-based embedding if sentence-transformers unavailable
+        """
+        # Check cache first
+        if self.cache_embeddings and query in self.embedding_cache:
+            return self.embedding_cache[query]
+
+        # Production: Use sentence-transformers
+        if self.use_sentence_transformers and self.encoder:
+            embedding = self.encoder.encode(query, convert_to_numpy=True)
+            embedding = embedding / np.linalg.norm(embedding)  # Normalize
+
+            if self.cache_embeddings:
+                self.embedding_cache[query] = embedding
+
+            return embedding
+
+        # Fallback: Hash-based embedding
         np.random.seed(hash(query) % (2**32))
         embedding = np.random.randn(self.embedding_dim)
         embedding = embedding / np.linalg.norm(embedding)
@@ -185,11 +316,21 @@ class DenseToolRetriever:
             "categories": len(self.category_index),
             "category_distribution": {
                 cat: len(indices) for cat, indices in self.category_index.items()
-            }
+            },
+            "using_sentence_transformers": self.use_sentence_transformers,
+            "using_faiss": self.use_faiss and self.faiss_index is not None,
+            "embedding_cache_size": len(self.embedding_cache),
+            "embedding_dim": self.embedding_dim
         }
 
-    def save_registry(self, filepath: str) -> None:
-        """Save tool registry to file"""
+    def save_registry(self, filepath: str, save_faiss_index: bool = True) -> None:
+        """
+        Save tool registry to file
+
+        Args:
+            filepath: Path to save JSON registry
+            save_faiss_index: If True, also save FAISS index to {filepath}.faiss
+        """
         data = {
             "tools": [tool.to_dict() for tool in self.tools],
             "embedding_dim": self.embedding_dim
@@ -198,8 +339,20 @@ class DenseToolRetriever:
         with open(filepath, 'w') as f:
             json.dump(data, f, indent=2)
 
-    def load_registry(self, filepath: str) -> None:
-        """Load tool registry from file"""
+        # Save FAISS index if available
+        if save_faiss_index and self.use_faiss and self.faiss_index:
+            index_path = f"{filepath}.faiss"
+            self.faiss.write_index(self.faiss_index, index_path)
+            print(f"FAISS index saved to {index_path}")
+
+    def load_registry(self, filepath: str, load_faiss_index: bool = True) -> None:
+        """
+        Load tool registry from file
+
+        Args:
+            filepath: Path to JSON registry
+            load_faiss_index: If True, also load FAISS index from {filepath}.faiss
+        """
         with open(filepath, 'r') as f:
             data = json.load(f)
 
@@ -210,6 +363,15 @@ class DenseToolRetriever:
             tools.append(tool)
 
         self.add_tools_batch(tools)
+
+        # Load FAISS index if available
+        if load_faiss_index and self.use_faiss:
+            index_path = f"{filepath}.faiss"
+            if os.path.exists(index_path):
+                self.faiss_index = self.faiss.read_index(index_path)
+                print(f"FAISS index loaded from {index_path}")
+            else:
+                print(f"FAISS index file not found: {index_path}")
 
 
 class ToolRegistry:
