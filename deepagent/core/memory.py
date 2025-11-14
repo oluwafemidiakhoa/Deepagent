@@ -85,10 +85,18 @@ class EpisodicMemory:
     Implements importance-based compression to prevent overflow
     """
 
-    def __init__(self, max_size: int = 1000, compression_threshold: float = 0.8):
+    def __init__(
+        self,
+        max_size: int = 1000,
+        compression_threshold: float = 0.8,
+        vector_store=None,
+        embedding_function=None
+    ):
         self.memories: List[EpisodicMemoryEntry] = []
         self.max_size = max_size
         self.compression_threshold = compression_threshold
+        self.vector_store = vector_store  # Optional persistent storage
+        self.embedding_function = embedding_function  # For vector search
 
     def add(self, entry: EpisodicMemoryEntry) -> None:
         """Add new episodic memory with automatic compression"""
@@ -125,6 +133,74 @@ class EpisodicMemory:
             summary_parts.append(f"{event_type.upper()}: {len(events)} events")
 
         return " | ".join(summary_parts)
+
+    def persist_to_vector_store(self) -> bool:
+        """Save memories to vector store for long-term persistence"""
+        if not self.vector_store or not self.embedding_function:
+            return False
+
+        try:
+            from ..integrations.vector_stores import VectorEntry
+            import hashlib
+
+            entries = []
+            for memory in self.memories:
+                # Generate unique ID
+                memory_id = hashlib.md5(
+                    f"{memory.timestamp.isoformat()}_{memory.content}".encode()
+                ).hexdigest()
+
+                # Generate embedding
+                embedding = self.embedding_function(memory.content)
+
+                entries.append(VectorEntry(
+                    id=memory_id,
+                    content=memory.content,
+                    embedding=embedding,
+                    metadata={
+                        "event_type": memory.event_type,
+                        "importance_score": memory.importance_score,
+                        "timestamp": memory.timestamp.isoformat(),
+                        **memory.metadata
+                    }
+                ))
+
+            self.vector_store.add(entries)
+            return True
+
+        except Exception as e:
+            print(f"Error persisting to vector store: {e}")
+            return False
+
+    def load_from_vector_store(self, limit: int = 100) -> bool:
+        """Load recent memories from vector store"""
+        if not self.vector_store:
+            return False
+
+        try:
+            import numpy as np
+
+            # Query with a neutral embedding to get recent memories
+            # In practice, you might want to query with specific criteria
+            neutral_embedding = np.zeros(384)  # Adjust size as needed
+            results = self.vector_store.search(neutral_embedding, top_k=limit)
+
+            self.memories = []
+            for result in results:
+                entry = EpisodicMemoryEntry(
+                    timestamp=datetime.fromisoformat(result.metadata.get("timestamp", datetime.now().isoformat())),
+                    content=result.content,
+                    event_type=result.metadata.get("event_type", "unknown"),
+                    importance_score=result.metadata.get("importance_score", 0.5),
+                    metadata=result.metadata
+                )
+                self.memories.append(entry)
+
+            return True
+
+        except Exception as e:
+            print(f"Error loading from vector store: {e}")
+            return False
 
 
 class WorkingMemory:
