@@ -27,6 +27,9 @@ python-dotenv>=1.0.0
 tenacity>=8.2.0  # For retry logic
 pydantic>=2.0.0  # For data validation
 
+# Continual Learning (SEAL)
+# peft>=0.7.0  # Optional: For LoRA weight updates in SEAL
+
 # Optional: For visualization
 # matplotlib>=3.7.0
 # seaborn>=0.12.0

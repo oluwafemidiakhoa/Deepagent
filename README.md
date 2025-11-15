@@ -12,6 +12,7 @@ A production-ready implementation of DeepAgent-inspired architecture with end-to
 | **LLM Efficiency** | 30-50% fewer calls | Baseline | High overhead (agent comms) |
 | **Tool Discovery** | Semantic search (10K+ tools) | Manual registration | Predefined toolsets |
 | **Memory System** | Three-layer with compression | Basic conversation buffer | Per-agent memory |
+| **Continual Learning** | ✓ SEAL (MIT-inspired) | None | None |
 | **Learning & Optimization** | ToolPO reinforcement learning | None | None |
 | **Production Features** | ✓ Full stack | Partial | Limited |
 | **Latency** | Low (single agent) | Medium | High (agent coordination) |
@@ -55,12 +56,24 @@ Reinforcement learning for optimal tool usage:
 - PPO-based optimization for tool selection
 - Continuous improvement from execution feedback
 
+### 6. SEAL (Self-Editing Adaptive Learning)
+**The FIRST open-source agent framework with true continual learning:**
+- Learns permanently from every task execution
+- Generates synthetic training data (study sheets) automatically
+- Self-evaluates performance improvements via variant selection
+- Updates model weights via LoRA adapters (optional)
+- Prevents catastrophic forgetting using episodic memory backup
+- Enables multi-agent knowledge sharing
+
+This breakthrough makes DeepAgent unique - no other framework (LangChain, CrewAI, AutoGPT) has self-improvement capabilities.
+
 ## Architecture
 
 ```
 deepagent/
 ├── core/
 │   ├── agent.py              # Main DeepAgent orchestrator
+│   ├── self_editing_agent.py # SEAL-powered self-improving agent
 │   ├── memory.py             # Three-layer memory system
 │   └── reasoning.py          # End-to-end reasoning loop
 ├── tools/
@@ -73,10 +86,12 @@ deepagent/
 │   ├── databases.py          # PostgreSQL, Redis
 │   └── observability.py      # Logging, metrics, tracing
 ├── training/
+│   ├── seal.py               # SEAL continual learning (MIT-inspired)
 │   ├── toolpo.py             # Tool Policy Optimization (PPO + GAE)
 │   └── rewards.py            # Reward modeling for RL
 └── examples/
     ├── basic_usage.py        # Simple examples
+    ├── seal_learning_example.py  # SEAL continual learning demo
     ├── genesis_ai.py         # GENESIS-AI integration
     └── production_llm.py     # Production features demo
 
@@ -198,6 +213,20 @@ python examples/basic_usage.py
 4. Tool discovery
 5. Error handling
 6. Task decomposition
+
+### SEAL Continual Learning Examples
+```bash
+python examples/seal_learning_example.py
+```
+
+5 examples demonstrating self-improvement:
+1. Basic SEAL learning from task execution
+2. Incremental learning over multiple related tasks
+3. Domain expertise accumulation (synthetic biology)
+4. Catastrophic forgetting prevention and recovery
+5. Multi-agent knowledge sharing (conceptual)
+
+**This is the FIRST and ONLY open-source agent framework with true continual learning!**
 
 ### Production LLM Examples
 ```bash
