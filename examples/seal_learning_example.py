@@ -40,7 +40,7 @@ def example_1_basic_seal_learning():
         use_mock_llm=True,  # Use mock for demo (set False for real LLM)
         enable_seal_learning=True,
         seal_auto_update=True,
-        max_reasoning_steps=5
+        max_steps=5
     )
 
     agent = SelfEditingAgent(config=config)
@@ -100,7 +100,7 @@ def example_2_incremental_learning():
 
         # Show progress
         stats = agent.get_learning_stats()
-        print(f"  ✓ Completed (steps={len(result.history)})")
+        print(f"  [OK] Completed (steps={len(result.history)})")
         print(f"  Learning sessions: {stats['total_learning_sessions']}")
 
     # Final stats
@@ -133,7 +133,7 @@ def example_3_domain_expertise_accumulation():
         enable_seal_learning=True,
         seal_auto_update=True,
         seal_learning_frequency=1,  # Learn from every task
-        max_reasoning_steps=10
+        max_steps=10
     )
 
     agent = SelfEditingAgent(config=config)
@@ -163,7 +163,7 @@ def example_3_domain_expertise_accumulation():
         obs.record_metric("counter", "workflow_steps_completed", 1)
         obs.record_metric("histogram", "step_execution_time", result.execution_time)
 
-        print(f"\n✓ Step {i} completed")
+        print(f"\n[OK] Step {i} completed")
         print(f"  Reasoning steps: {len(result.history)}")
 
         # Show accumulated knowledge
@@ -228,7 +228,7 @@ def example_4_forgetting_recovery():
     # Try to recover CRISPR knowledge
     agent.recover_from_forgetting("CRISPR")
 
-    print("\n✓ Episodic memory successfully prevented catastrophic forgetting!")
+    print("\n[SUCCESS] Episodic memory successfully prevented catastrophic forgetting!")
     print("  The agent can still access CRISPR knowledge from memory.")
 
 
@@ -269,7 +269,7 @@ def example_5_multi_agent_knowledge_sharing():
     agent_a.export_learned_knowledge("agent_a_knowledge.json")
     agent_b.export_learned_knowledge("agent_b_knowledge.json")
 
-    print("\n✓ Knowledge exported!")
+    print("\n[SUCCESS] Knowledge exported!")
     print("\nIn a production system, agents could:")
     print("  1. Share their SEAL study sheets")
     print("  2. Transfer LoRA adapters")
@@ -289,12 +289,12 @@ if __name__ == "__main__":
     print("="*80)
     print("\nThe FIRST open-source agent framework with continual learning!")
     print("\nFeatures demonstrated:")
-    print("  ✓ Permanent learning from task executions")
-    print("  ✓ Synthetic training data generation")
-    print("  ✓ Self-evaluation and selection")
-    print("  ✓ Incremental domain expertise accumulation")
-    print("  ✓ Catastrophic forgetting prevention")
-    print("  ✓ Multi-agent knowledge sharing")
+    print("  [x] Permanent learning from task executions")
+    print("  [x] Synthetic training data generation")
+    print("  [x] Self-evaluation and selection")
+    print("  [x] Incremental domain expertise accumulation")
+    print("  [x] Catastrophic forgetting prevention")
+    print("  [x] Multi-agent knowledge sharing")
 
     try:
         # Run examples

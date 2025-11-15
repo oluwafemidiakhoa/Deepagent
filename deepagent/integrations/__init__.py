@@ -29,9 +29,8 @@ from .databases import (
 )
 
 from .observability import (
-    setup_logging,
-    track_metric,
-    trace_execution
+    create_observability,
+    ObservabilityManager
 )
 
 __all__ = [
@@ -53,7 +52,6 @@ __all__ = [
     "RedisConnection",
 
     # Observability
-    "setup_logging",
-    "track_metric",
-    "trace_execution",
+    "create_observability",
+    "ObservabilityManager",
 ]

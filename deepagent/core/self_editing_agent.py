@@ -71,7 +71,7 @@ class SelfEditingAgent(DeepAgent):
                 toolpo_optimizer=None,  # Could integrate with ToolPO
                 enable_weight_updates=config.seal_weight_updates
             )
-            print("\n✓ SEAL learning enabled - agent will self-improve!")
+            print("\n[SEAL] Learning enabled - agent will self-improve!")
         else:
             self.seal_trainer = None
 
@@ -165,7 +165,7 @@ class SelfEditingAgent(DeepAgent):
         with open(memory_path, 'w') as f:
             f.write(memory_summary)
 
-        print(f"\n✓ Learned knowledge exported:")
+        print(f"\n[EXPORT] Learned knowledge exported:")
         print(f"  SEAL history: {seal_path}")
         print(f"  Memory: {memory_path}")
 
@@ -192,7 +192,7 @@ class SelfEditingAgent(DeepAgent):
         ]
 
         if seal_memories:
-            print(f"\n✓ Found {len(seal_memories)} SEAL memories about '{topic}'")
+            print(f"\n[RECOVER] Found {len(seal_memories)} SEAL memories about '{topic}'")
             print("Recovering knowledge...")
 
             # Re-learn from stored memories
@@ -200,7 +200,7 @@ class SelfEditingAgent(DeepAgent):
                 print(f"  - {memory.metadata.get('strategy')}: quality={memory.metadata.get('quality_score'):.2f}")
 
             # Could trigger re-learning here
-            print("\n✓ Knowledge recovered from episodic memory!")
+            print("\n[SUCCESS] Knowledge recovered from episodic memory!")
         else:
             print(f"No SEAL memories found for '{topic}'")
 
@@ -236,7 +236,7 @@ def create_self_editing_agent(
         llm_model=llm_model,
         enable_seal_learning=enable_learning,
         seal_weight_updates=enable_weight_updates,
-        max_reasoning_steps=10
+        max_steps=10
     )
 
     return SelfEditingAgent(config=config)
