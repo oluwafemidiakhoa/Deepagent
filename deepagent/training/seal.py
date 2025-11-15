@@ -254,7 +254,7 @@ class VariantEvaluator:
             "improvement": best_score - baseline_performance
         })
 
-        print(f"\n✓ Best variant: {best_variant.generation_strategy} (score={best_score:.3f})")
+        print(f"\n[BEST] Variant: {best_variant.generation_strategy} (score={best_score:.3f})")
 
         return best_variant
 
@@ -416,7 +416,7 @@ class SEALTrainer:
                 update_id=weight_update.update_id
             )
 
-            print(f"\n✓ SEAL learning complete!")
+            print(f"\n[SEAL] Learning complete!")
             print(f"  Improvement: {weight_update.performance_improvement:.2%}")
             print(f"  Learning iteration: {self.learning_iterations}")
 
@@ -532,7 +532,7 @@ class SEALTrainer:
                 },
                 importance=0.9  # High importance
             )
-            print(f"  ✓ Backed up to episodic memory (prevents forgetting)")
+            print(f"  [BACKUP] Saved to episodic memory (prevents forgetting)")
 
     def get_learning_stats(self) -> Dict[str, Any]:
         """Get SEAL learning statistics"""

@@ -120,6 +120,46 @@ class EpisodicMemory:
 
         return sorted(filtered, key=lambda x: x.timestamp, reverse=True)[:limit]
 
+    def get_relevant_memories(self, query: str, top_k: int = 10) -> List[EpisodicMemoryEntry]:
+        """
+        Get relevant memories for a query
+
+        Simple implementation using keyword matching.
+        For production, would use semantic similarity via vector store.
+        """
+        query_lower = query.lower()
+
+        # Score memories by keyword relevance
+        scored_memories = []
+        for memory in self.memories:
+            content_lower = memory.content.lower()
+            # Simple keyword matching score
+            score = sum(1 for word in query_lower.split() if word in content_lower)
+            if score > 0:
+                scored_memories.append((memory, score))
+
+        # Sort by score and return top-k
+        scored_memories.sort(key=lambda x: x[1], reverse=True)
+        return [mem for mem, score in scored_memories[:top_k]]
+
+    def add_memory(self, event: str, content: str, metadata: dict = None, importance: float = 0.5):
+        """
+        Convenience method to add a memory
+
+        Args:
+            event: Event description
+            content: Memory content
+            metadata: Optional metadata dictionary
+            importance: Importance score (0.0 to 1.0)
+        """
+        entry = EpisodicMemoryEntry(
+            content=content,
+            event_type=event,
+            importance_score=importance,
+            metadata=metadata or {}
+        )
+        self.add(entry)
+
     def get_summary(self) -> str:
         """Generate compressed summary of episodic memory"""
         if not self.memories:

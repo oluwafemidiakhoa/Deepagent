@@ -97,7 +97,7 @@ class SelfEditingAgent(DeepAgent):
             - Improves future performance on similar tasks
         """
         # 1. Execute task normally
-        result = self.execute_task(task)
+        result = self.run(task)
 
         # 2. Learn from execution using SEAL
         if self.seal_config.enable_seal_learning and self.seal_trainer:
@@ -118,13 +118,13 @@ class SelfEditingAgent(DeepAgent):
 
         return result
 
-    def execute_task(self, task: str) -> any:
+    def run(self, task: str, context: str = None, max_steps: int = None) -> any:
         """
         Standard task execution (without learning)
 
         Use execute_with_learning() for continual learning
         """
-        return super().execute_task(task)
+        return super().run(task, context, max_steps)
 
     def get_learning_stats(self) -> dict:
         """
