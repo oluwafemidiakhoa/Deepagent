@@ -1,47 +1,131 @@
 [build-system]
-requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+requires = ["setuptools>=61.0", "wheel", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "deepagent"
+name = "safedeepagent"
 version = "0.1.0"
-description = "Advanced Agentic AI System with End-to-End Reasoning"
+description = "World's Most Comprehensive Secure Agentic AI Framework - 12 Security Foundations, Continual Learning, Multi-LLM Support"
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "MIT"}
 authors = [
-    {name = "DeepAgent Team"}
+    {name = "Oluwafemi Idiakhoa", email = "Oluwafemidiakhoa@gmail.com"}
+]
+keywords = [
+    "ai", "agents", "agentic-ai", "llm", "security",
+    "machine-learning", "deep-learning", "openai", "anthropic",
+    "deepseek", "qwen", "continual-learning", "seal",
+    "autonomous-agents", "agent-security", "prompt-injection",
+    "memory-firewall", "deception-detection"
 ]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Security",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
 ]
 
 dependencies = [
     "numpy>=1.24.0",
+    "requests>=2.28.0",
+    "pydantic>=2.0.0",
+    "tenacity>=8.2.0",
+    "python-dotenv>=1.0.0",
+    "structlog>=23.1.0",
 ]
 
+[project.urls]
+Homepage = "https://github.com/oluwafemidiakhoa/Deepagent"
+Documentation = "https://github.com/oluwafemidiakhoa/Deepagent#readme"
+Repository = "https://github.com/oluwafemidiakhoa/Deepagent"
+Issues = "https://github.com/oluwafemidiakhoa/Deepagent/issues"
+Changelog = "https://github.com/oluwafemidiakhoa/Deepagent/blob/main/CHANGELOG.md"
+
 [project.optional-dependencies]
+# LLM Provider Options
+llm = [
+    "openai>=1.0.0",
+    "anthropic>=0.7.0",
+]
+llm-all = [
+    "openai>=1.0.0",
+    "anthropic>=0.7.0",
+    "ollama>=0.1.0",           # Local LLM support
+    "litellm>=1.0.0",          # Unified interface for 100+ LLMs (includes DeepSeek, Qwen, etc.)
+]
+llm-local = [
+    "ollama>=0.1.0",           # Ollama for local models
+    "transformers>=4.30.0",    # HuggingFace transformers (Qwen, etc.)
+    "torch>=2.0.0",            # PyTorch for local inference
+]
+
+# Embedding & Vector Search
+embeddings = [
+    "sentence-transformers>=2.2.0",
+    "faiss-cpu>=1.7.0",
+]
+embeddings-gpu = [
+    "sentence-transformers>=2.2.0",
+    "faiss-gpu>=1.7.0",
+]
+
+# Vector Databases
+vector = [
+    "chromadb>=0.4.0",
+    "qdrant-client>=1.6.0",
+]
+
+# Traditional Databases
+database = [
+    "psycopg2-binary>=2.9.0",
+    "redis>=5.0.0",
+]
+
+# Observability & Monitoring
+observability = [
+    "opentelemetry-api>=1.20.0",
+    "opentelemetry-sdk>=1.20.0",
+]
+
+# Development Tools
 dev = [
     "pytest>=7.4.0",
     "pytest-cov>=4.1.0",
+    "pytest-asyncio>=0.21.0",
     "black>=23.0.0",
     "flake8>=6.0.0",
     "mypy>=1.4.0",
+    "isort>=5.12.0",
+]
+
+# Complete installation (all features)
+all = [
+    "safedeepagent[llm-all,embeddings,vector,database,observability]",
+]
+
+# Recommended minimal setup for production
+minimal = [
+    "safedeepagent[llm,embeddings]",
 ]
 
 [tool.black]
 line-length = 100
-target-version = ['py38', 'py39', 'py310', 'py311']
+target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
 include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+line_length = 100
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -55,3 +139,9 @@ python_version = "3.8"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
+
+[tool.setuptools]
+packages = ["deepagent"]
+
+[tool.setuptools.package-data]
+deepagent = ["py.typed"]

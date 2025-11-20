@@ -334,16 +334,44 @@ docs/
 
 ### Installation
 
+#### From PyPI (Recommended)
+
+```bash
+# Core installation (minimal dependencies)
+pip install safedeepagent
+
+# With LLM providers (OpenAI, Anthropic)
+pip install safedeepagent[llm]
+
+# With all LLM support (100+ models including DeepSeek, Qwen via LiteLLM)
+pip install safedeepagent[llm-all]
+
+# With local LLM support (Ollama, HuggingFace Transformers)
+pip install safedeepagent[llm-local]
+
+# With embeddings and vector search
+pip install safedeepagent[embeddings]
+
+# Complete installation (all features)
+pip install safedeepagent[all]
+
+# Minimal production setup (recommended)
+pip install safedeepagent[minimal]
+```
+
+#### From Source
+
 ```bash
 git clone https://github.com/oluwafemidiakhoa/Deepagent.git
 cd Deepagent
-pip install -r requirements.txt
+pip install -e .  # Install in editable mode
+# Or: pip install -r requirements.txt
 ```
 
 ### Basic Secure Usage (Recommended)
 
 ```python
-from deepagent.core.safe_agent import SafeDeepAgent, SafeConfig
+from safedeepagent.core.safe_agent import SafeDeepAgent, SafeConfig
 
 # Create fully-protected agent with all 12 foundations
 config = SafeConfig(
@@ -378,7 +406,7 @@ else:
 ### With Deception Detection
 
 ```python
-from deepagent.deception import TruthEvaluator, DeceptionScorer
+from safedeepagent.deception import TruthEvaluator, DeceptionScorer
 
 # Create truth evaluator
 truth_eval = TruthEvaluator()
@@ -407,7 +435,7 @@ print(f"Deception level: {deception.level}")  # LOW, MEDIUM, HIGH, CRITICAL
 ### With Multi-Agent Supervision
 
 ```python
-from deepagent.supervision import MetaSupervisor, SupervisionConfig
+from safedeepagent.supervision import MetaSupervisor, SupervisionConfig
 
 # Create supervisor
 supervisor = MetaSupervisor(SupervisionConfig(
@@ -438,7 +466,7 @@ for result in results:
 ### With Purpose Boundaries
 
 ```python
-from deepagent.purpose import PurposeBinder, PurposeScope
+from safedeepagent.purpose import PurposeBinder, PurposeScope
 
 # Create purpose binder
 binder = PurposeBinder()

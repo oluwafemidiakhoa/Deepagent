@@ -1,0 +1,53 @@
+# Include documentation
+include README.md
+include LICENSE
+include CHANGELOG.md
+include requirements.txt
+
+# Include documentation directory
+recursive-include docs *.md *.rst
+
+# Include example scripts (helps users get started)
+recursive-include examples *.py
+
+# Include all Python source files
+recursive-include deepagent *.py
+
+# Include type stubs if present
+recursive-include deepagent *.pyi
+include deepagent/py.typed
+
+# Exclude test files
+prune tests
+prune benchmarks
+
+# Exclude audit logs and temporary files
+prune audit_logs
+prune __pycache__
+prune .pytest_cache
+prune .mypy_cache
+prune *.egg-info
+prune dist
+prune build
+
+# Exclude compiled Python files
+global-exclude *.py[cod]
+global-exclude __pycache__
+global-exclude *.so
+global-exclude *.dylib
+
+# Exclude OS-specific files
+global-exclude .DS_Store
+global-exclude Thumbs.db
+
+# Exclude development/IDE files
+global-exclude .vscode
+global-exclude .idea
+global-exclude *.swp
+global-exclude *.swo
+global-exclude *~
+
+# Exclude git files
+global-exclude .git
+global-exclude .gitignore
+global-exclude .gitattributes
