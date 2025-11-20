@@ -1,5 +1,9 @@
 # DeepAgent - World's Most Comprehensive Secure Agentic AI Framework
 
+[![PyPI version](https://badge.fury.io/py/safedeepagent.svg)](https://pypi.org/project/safedeepagent/)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A production-ready implementation of advanced agentic AI with **the world's first complete 12-foundation security framework**, end-to-end reasoning, continual learning (SEAL), and enterprise-grade reliability.
 
 **Built to surpass LangChain and CrewAI** with continuous reasoning, semantic tool retrieval at scale, true self-improvement capabilities, and unprecedented security.
