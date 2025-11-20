@@ -1,0 +1,15 @@
+record_id,timestamp,session_id,user_id,event_type,severity,tool_name,action_type,phase1_risk_score,phase1_decision,allowed,error,duration_ms
+6bf140e8-800a-4ab5-817d-ca00c6495211,2025-11-15T19:44:41.351688,session_2,user_0,action_blocked,warning,tool_1,write,,,False,,135.0
+6db810fb-64c7-4060-8ca8-cd60652ee88a,2025-11-15T19:44:41.351688,session_2,user_0,session_end,info,,,,,True,,
+bb6d85b7-4497-4f2c-b8cd-4585cc6f882f,2025-11-15T19:44:41.350685,session_2,user_0,tool_success,info,tool_1,write,,,True,,90.0
+f4244655-4084-4136-a04e-496c0183e8e7,2025-11-15T19:44:41.350685,session_2,user_0,tool_success,info,tool_2,execute,,,True,,105.0
+4fd74f95-628c-4904-b766-1459f65acbdb,2025-11-15T19:44:41.350685,session_2,user_0,tool_success,info,tool_0,read,,,True,,120.0
+5f47f57a-6823-4a9a-808b-5194ed911f5e,2025-11-15T19:44:41.349686,session_2,user_0,session_start,info,,,,,True,,
+e7bc4fdd-b875-42d9-a9f2-71575baae6ed,2025-11-15T19:44:41.349686,session_2,user_0,tool_success,info,tool_0,read,,,True,,75.0
+209f353b-de68-44a1-9639-21ea3f193576,2025-11-15T19:44:41.347678,session_0,user_0,tool_success,info,tool_0,read,,,True,,120.0
+616e18c9-5b32-4926-998d-becb31278714,2025-11-15T19:44:41.347678,session_0,user_0,action_blocked,warning,tool_1,write,,,False,,135.0
+2b984307-90f1-47cd-907e-077c9a058d91,2025-11-15T19:44:41.347678,session_0,user_0,session_end,info,,,,,True,,
+6d74b70c-72a1-4913-bd8d-e1bd90d485fd,2025-11-15T19:44:41.346247,session_0,user_0,tool_success,info,tool_1,write,,,True,,90.0
+7cc78194-1e3c-408b-aa5c-e9c456eb26b2,2025-11-15T19:44:41.346247,session_0,user_0,tool_success,info,tool_2,execute,,,True,,105.0
+09ed74f2-0653-4534-aa15-0ff180f5c039,2025-11-15T19:44:41.345250,session_0,user_0,tool_success,info,tool_0,read,,,True,,75.0
+fb5d9dfe-2e6c-42ca-b66b-05a75dd8a6bf,2025-11-15T19:44:41.344241,session_0,user_0,session_start,info,,,,,True,,
