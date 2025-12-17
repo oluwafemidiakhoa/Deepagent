@@ -7,7 +7,7 @@
 **Author**: Oluwafemi Idiakhoa
 **Organization**: DeepAgent Project
 **Version**: 1.0
-**Date**: November 15, 2025
+**Date**: December 17, 2025
 **Status**: Production Implementation Complete
 
 ---
@@ -494,6 +494,95 @@ class SafeDeepAgent:
 | Test Coverage | ~2,500 lines |
 | Documentation | ~4,000 lines |
 | **Total Project Size** | **~24,444 lines** |
+
+### 4.5 Multi-LLM Support
+
+SafeDeepAgent provides unified support for 100+ LLM providers, ensuring flexibility and avoiding vendor lock-in.
+
+#### 4.5.1 Supported Providers
+
+**Direct Integration**:
+- **OpenAI**: GPT-4, GPT-4 Turbo, GPT-3.5 Turbo
+- **Anthropic**: Claude 3 Opus, Claude 3 Sonnet, Claude 3 Haiku
+
+**Via LiteLLM (100+ Models)**:
+- **DeepSeek**: DeepSeek-V2, DeepSeek-Coder
+- **Qwen**: Qwen-72B, Qwen-14B, Qwen-7B
+- **Mistral**: Mistral-Large, Mistral-Medium, Mixtral
+- **Google**: Gemini Pro, Gemini Ultra, PaLM 2
+- **Meta**: Llama 2 (7B-70B), Llama 3
+- **Cohere**: Command, Command-Light, Command-R
+- **And 90+ more providers...**
+
+**Local Models**:
+- **Ollama**: Run models locally (Llama, Mistral, Qwen, etc.)
+- **HuggingFace Transformers**: Direct model loading for offline deployments
+
+#### 4.5.2 Installation Options
+
+```bash
+# Core with OpenAI/Anthropic only
+pip install safedeepagent[llm]
+
+# All LLM providers (includes LiteLLM for DeepSeek, Qwen, etc.)
+pip install safedeepagent[llm-all]
+
+# Local LLMs only (Ollama + HuggingFace)
+pip install safedeepagent[llm-local]
+
+# Complete installation (all features)
+pip install safedeepagent[all]
+```
+
+#### 4.5.3 Usage Examples
+
+```python
+from deepagent.core.safe_agent import SafeDeepAgent
+
+# OpenAI GPT-4
+agent = SafeDeepAgent(
+    llm_provider="openai",
+    model="gpt-4",
+    enable_all_security=True
+)
+
+# Anthropic Claude 3 Opus
+agent = SafeDeepAgent(
+    llm_provider="anthropic",
+    model="claude-3-opus-20240229",
+    enable_all_security=True
+)
+
+# DeepSeek via LiteLLM
+agent = SafeDeepAgent(
+    llm_provider="litellm",
+    model="deepseek/deepseek-chat",
+    enable_all_security=True
+)
+
+# Qwen via LiteLLM
+agent = SafeDeepAgent(
+    llm_provider="litellm",
+    model="qwen/qwen-72b-chat",
+    enable_all_security=True
+)
+
+# Local Ollama (no API key needed)
+agent = SafeDeepAgent(
+    llm_provider="ollama",
+    model="llama2:70b",
+    enable_all_security=True
+)
+```
+
+#### 4.5.4 Benefits of Multi-LLM Support
+
+1. **Vendor Independence**: Avoid lock-in to a single provider
+2. **Cost Optimization**: Use cheaper models for simple tasks, powerful models for complex reasoning
+3. **Privacy**: Run models locally for sensitive data
+4. **Resilience**: Fallback to alternative providers if one is unavailable
+5. **Future-Proofing**: Easy migration to new models as they emerge
+6. **Regional Compliance**: Use locally-hosted models for data sovereignty requirements
 
 ---
 
